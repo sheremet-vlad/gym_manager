@@ -17,16 +17,16 @@ public class NewClient extends JFrame {
                         fieldSecondName = new JTextField(COUNT_COLUMNS),
                         fieldBirthday = new JTextField(COUNT_COLUMNS),
                         fieldPhone = new JTextField(COUNT_COLUMNS),
-                        fieldWork = new JTextField(COUNT_COLUMNS);
+                        fieldWCartNumber = new JTextField(COUNT_COLUMNS);
     private JLabel  labelName = new JLabel("Имя"),
                     labelSurname = new JLabel("Фамилия"),
                     labelSecondName = new JLabel("Отчество"),
                     labelBirthday = new JLabel("Дата рождения"),
-                    labelTitle = new JLabel("РЕГИСТРАЦИЯ НОВГО КЛИЕНТА"),
+                    labelTitle = new JLabel("РЕГИСТРАЦИЯ НОВОГО КЛИЕНТА"),
                     line = new JLabel(""),
                     line2 = new JLabel(""),
                     labelContactPhone = new JLabel("Телефон"),
-                    labelWork = new JLabel("Место Раб./Уч.");
+                    labelCartNumber = new JLabel("Номер карты");
 
     private JButton button_finish = new JButton("Зарегистрировать");
 
@@ -54,8 +54,8 @@ public class NewClient extends JFrame {
         add(fieldBirthday).setBounds(220,300,200,40);
         add(labelContactPhone).setBounds(90,370,200,40);
         add(fieldPhone).setBounds(220,370,200,40);
-        add(labelWork).setBounds(30,440,200,40);
-        add(fieldWork).setBounds(220,440,200,40);
+        add(labelCartNumber).setBounds(30,440,200,40);
+        add(fieldWCartNumber).setBounds(220,440,200,40);
         add(line2).setBounds(0,500,form_width,1);
         add(button_finish).setBounds(220,510,200,40);
 
@@ -79,10 +79,10 @@ public class NewClient extends JFrame {
         fieldSecondName.setFont(fontField);
         fieldSurname.setFont(fontField);
         fieldBirthday.setFont(fontField);
-        fieldWork.setFont(fontField);
+        fieldWCartNumber.setFont(fontField);
         fieldPhone.setFont(fontField);
 
-        labelWork.setFont(fontLabel);
+        labelCartNumber.setFont(fontLabel);
         labelContactPhone.setFont(fontLabel);
         labelName.setFont(fontLabel);
         labelBirthday.setFont(fontLabel);
@@ -105,7 +105,7 @@ public class NewClient extends JFrame {
                             secondName = fieldSecondName.getText(),
                             surname = fieldSurname.getText(),
                             birthday = fieldBirthday.getText(),
-                            work = fieldWork.getText(),
+                            work = fieldWCartNumber.getText(),
                             phone = fieldPhone.getText();
 
 
@@ -134,7 +134,7 @@ public class NewClient extends JFrame {
                     fieldSecondName.setText("");
                     fieldSurname.setText("");
                     fieldBirthday.setText("");
-                    fieldWork.setText("");
+                    fieldWCartNumber.setText("");
                     fieldPhone.setText("");
 
                 }
