@@ -1,19 +1,20 @@
 package main;
 
-import java.awt.*;
-import java.awt.event.*;
 import javax.swing.*;
-import javax.swing.table.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-/**
- * @version 1.0 11/09/98
- */
-public class ButtonEditor extends DefaultCellEditor {
+import static create_gui_form.SwingConsole.run1;
+
+
+public class ButtonEditorChangeInfo extends DefaultCellEditor {
     protected JButton button;
     private String    label;
     private boolean   isPushed;
+    private int row;
 
-    public ButtonEditor(JCheckBox checkBox) {
+    public ButtonEditorChangeInfo(JCheckBox checkBox) {
         super(checkBox);
         button = new JButton();
         button.setOpaque(true);
@@ -36,15 +37,13 @@ public class ButtonEditor extends DefaultCellEditor {
         label = (value ==null) ? "" : value.toString();
         button.setText( label );
         isPushed = true;
+        this.row = row;
         return button;
     }
 
     public Object getCellEditorValue() {
         if (isPushed)  {
-            //
-            //
-            JOptionPane.showMessageDialog(button ,label + ": Ouch!");
-            // System.out.println(label + ": Ouch!");
+            actionButtonChangeInfo();
         }
         isPushed = false;
         return new String( label ) ;
@@ -58,5 +57,10 @@ public class ButtonEditor extends DefaultCellEditor {
     protected void fireEditingStopped() {
         super.fireEditingStopped();
     }
+
+    private void actionButtonChangeInfo(){
+        run1(new ClientPage(395,1000,row),1000,395);
+    }
 }
+
 

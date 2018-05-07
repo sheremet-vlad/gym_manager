@@ -16,11 +16,14 @@ public class ButtonRenderer extends JButton implements TableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
                                                    boolean isSelected, boolean hasFocus, int row, int column) {
         if (isSelected) {
-            setForeground(table.getSelectionForeground());
-            setBackground(table.getSelectionBackground());
+            setForeground(Color.BLACK);
+            setBackground(new Color(110,163,255));
         } else{
-            setForeground(table.getForeground());
-            setBackground(UIManager.getColor("Button.background"));
+            setForeground(new Color(90,90,90));
+            setBackground(new Color(200,200,200));
+
+            setBorder(null);
+            //setBackground(UIManager.getColor("Button.background"));
         }
         setText( (value ==null) ? "" : value.toString() );
         return this;

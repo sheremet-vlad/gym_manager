@@ -2,22 +2,35 @@ package main;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+
+import static main.ClientTable.tableTitle;
+import static main.Form.addTableRow;
+
 
 public class NewClient extends JFrame {
     private int COUNT_COLUMNS = 30;
+    public static Object[] newClientInfo;
+    public static String dirPathForClientPath = "E:\\temp_file\\clients\\";
 
     private JTextField  fieldFirstName = new JTextField(COUNT_COLUMNS),
                         fieldSurname = new JTextField(COUNT_COLUMNS),
                         fieldSecondName = new JTextField(COUNT_COLUMNS),
-                        fieldBirthday = new JTextField(COUNT_COLUMNS),
-                        fieldPhone = new JTextField(COUNT_COLUMNS),
                         fieldWCartNumber = new JTextField(COUNT_COLUMNS);
+
+    private JFormattedTextField fieldBirthday,fieldPhone;
+
+    private ButtonGroup manOrWoman = new ButtonGroup();
+
+    private JRadioButton    radioMan = new JRadioButton("М"),
+                            radioWoman = new JRadioButton("Ж");
+
+
     private JLabel  labelName = new JLabel("Имя"),
                     labelSurname = new JLabel("Фамилия"),
                     labelSecondName = new JLabel("Отчество"),
@@ -26,6 +39,7 @@ public class NewClient extends JFrame {
                     line = new JLabel(""),
                     line2 = new JLabel(""),
                     labelContactPhone = new JLabel("Телефон"),
+                    labelNotPerfom = new JLabel(""),
                     labelCartNumber = new JLabel("Номер карты");
 
     private JButton button_finish = new JButton("Зарегистрировать");
@@ -40,24 +54,42 @@ public class NewClient extends JFrame {
         //настройка компонентов
         configurateComponent();
 
+        //настройка маски поля день рождения
+        fieldBirthday = new JFormattedTextField();
+        try {
+            MaskFormatter mfData = new MaskFormatter("##.##.####");
+            MaskFormatter mfPhone = new MaskFormatter("80(##)-###-##-##");
+            fieldBirthday = new JFormattedTextField(mfData);
+            fieldPhone = new JFormattedTextField(mfPhone);
+        }
+        catch (Exception ee){}
+
+        manOrWoman.add(radioMan);
+        manOrWoman.add(radioWoman);
+
+
         //добавление компонетов
-        add(labelTitle).setBounds(50,10,500,50);
+        add(labelTitle).setBounds(42,10,200,30);
         line.setBorder(border); line2.setBorder(border);
-        add(line).setBounds(0,70,form_width,1);
-        add(labelSurname).setBounds(90,90,200,40);
-        add(fieldSurname).setBounds(220,90,200,40);
-        add(labelName).setBounds(150,160,200,40);
-        add(fieldFirstName).setBounds(220,160,200,40);
-        add(labelSecondName).setBounds(90,230,200,40);
-        add(fieldSecondName).setBounds(220,230,200,40);
-        add(labelBirthday).setBounds(20,300,200,40);
-        add(fieldBirthday).setBounds(220,300,200,40);
-        add(labelContactPhone).setBounds(90,370,200,40);
-        add(fieldPhone).setBounds(220,370,200,40);
-        add(labelCartNumber).setBounds(30,440,200,40);
-        add(fieldWCartNumber).setBounds(220,440,200,40);
-        add(line2).setBounds(0,500,form_width,1);
-        add(button_finish).setBounds(220,510,200,40);
+        add(line).setBounds(0,40,form_width,1);
+        add(labelSurname).setBounds(40,50,70,20);
+        add(fieldSurname).setBounds(110,50,130,20);
+        add(labelName).setBounds(40,80,70,20);
+        add(fieldFirstName).setBounds(110,80,130,20);
+        add(labelSecondName).setBounds(40,110,70,20);
+        add(fieldSecondName).setBounds(110,110,130,20);
+        add(labelBirthday).setBounds(40,140,70,20);
+        add(fieldBirthday).setBounds(110,140,70,20);
+        add(labelContactPhone).setBounds(40,170,70,20);
+        add(fieldPhone).setBounds(110,170,130,20);
+        add(labelCartNumber).setBounds(40,200,70,20);
+        add(fieldWCartNumber).setBounds(110,200,130,20);
+        add(radioMan).setBounds(110,230,40,20);
+        add(radioWoman).setBounds(200,230,40,20);
+        add(line2).setBounds(0,255,form_width,1);
+        add(button_finish).setBounds(40,270,200,20);
+        add(labelNotPerfom).setBounds(90,300,200,20);
+
 
         //кнопка зарегистрировать
         buttonRegistrateAction();
@@ -67,30 +99,9 @@ public class NewClient extends JFrame {
     //настройка компонентов
     private void configurateComponent(){
         String fontFamily = "Arial";
-        Font fontField = new Font(fontFamily,Font.PLAIN,20);
         Font fontLabel = new Font(fontFamily,Font.PLAIN,25);
-        Font fontTitle = new Font(fontFamily,Font.PLAIN,30);
-        Font fontButton = new Font(fontFamily,Font.PLAIN,20);
+        labelNotPerfom.setFont(fontLabel);
 
-        labelTitle.setFont(fontTitle);
-        line.setBackground(Color.BLACK);
-
-        fieldFirstName.setFont(fontField);
-        fieldSecondName.setFont(fontField);
-        fieldSurname.setFont(fontField);
-        fieldBirthday.setFont(fontField);
-        fieldWCartNumber.setFont(fontField);
-        fieldPhone.setFont(fontField);
-
-        labelCartNumber.setFont(fontLabel);
-        labelContactPhone.setFont(fontLabel);
-        labelName.setFont(fontLabel);
-        labelBirthday.setFont(fontLabel);
-        labelSecondName.setFont(fontLabel);
-        labelSurname.setFont(fontLabel);
-
-        button_finish.setFont(fontButton);
-        button_finish.setBackground(Color.GRAY);
     }
 
 
@@ -100,43 +111,57 @@ public class NewClient extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    FileWriter write = new FileWriter("E:\\temp_file\\clients.txt",true);
+                    FileWriter write = new FileWriter(ClientTable.clientsFile,true);
                     String  name = fieldFirstName.getText(),
                             secondName = fieldSecondName.getText(),
                             surname = fieldSurname.getText(),
                             birthday = fieldBirthday.getText(),
-                            work = fieldWCartNumber.getText(),
+                            cartNumber = fieldWCartNumber.getText(),
                             phone = fieldPhone.getText();
 
 
 
-                    if (name.equals("") && secondName.equals("") && surname.equals("") && birthday.equals("")
-                            && phone.equals("") && work.equals("")) {
-                        button_finish.setBackground(Color.RED);
-                        try {
-                            Thread.sleep(1000);
-                        }
-                        catch (Exception eee){}
-                        button_finish.setBackground(Color.GRAY);
+                    if (name.equals("") || secondName.equals("") || surname.equals("") || birthday.equals("")
+                            || phone.equals("") || cartNumber.equals("") || (!radioMan.isSelected() && !radioWoman.isSelected())) {
+                        labelNotPerfom.setText("Ошибка");
                     }
                     else {
-                        write.append(name+" | ");
-                        write.append(secondName+" | ");
-                        write.append(surname+" | ");
-                        write.append(birthday+" | ");
-                        write.append(work+" | ");
-                        write.append(phone+" |\n");
+                        labelNotPerfom.setText("");
+                        //запись в массив
+                        newClientInfo = new Object[tableTitle.length];
+                        newClientInfo[0] = surname + " " + name + " " + secondName;
+                        newClientInfo[1] = cartNumber;
+                        newClientInfo[2] = phone;
+                        newClientInfo[7] = birthday;
+                        newClientInfo[3] = "--";
+                        newClientInfo[4] = "--";
+                        newClientInfo[5] = "+";
+                        newClientInfo[6] = "-";
+                        newClientInfo[8] = "Добавить";
+                        newClientInfo[9] = "...";
+
+                        //запись в файл
+                        write.append(surname+" ");
+                        write.append(name+" ");
+                        write.append(secondName+"|");
+                        write.append(birthday+"|");
+                        write.append(cartNumber+"|");
+                        write.append(phone+"|\n");
+                        dispose();
+                        File clientFile = new File(dirPathForClientPath+surname+" "+name+" "+secondName+".txt");
+                        BufferedWriter writer = new BufferedWriter(new FileWriter(clientFile));
+                        clientFile.createNewFile();
+                        if (radioMan.isSelected()){
+                            writer.write("M\n");
+                        }
+                        else {
+                            writer.write("Ж\n");
+                        }
+                        writer.close();
+                        addTableRow();
                     }
-
                     write.flush();
-
-                    fieldFirstName.setText("");
-                    fieldSecondName.setText("");
-                    fieldSurname.setText("");
-                    fieldBirthday.setText("");
-                    fieldWCartNumber.setText("");
-                    fieldPhone.setText("");
-
+                    write.close();
                 }
                 catch (IOException ee){
                     System.out.println("Error");

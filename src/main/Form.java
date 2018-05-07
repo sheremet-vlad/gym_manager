@@ -1,27 +1,47 @@
 package main;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 
 import static create_gui_form.SwingConsole.run;
 import static create_gui_form.SwingConsole.run1;
-import static main.ClientTable.clientInfo;
-import static main.ClientTable.loadInformation;
-import static main.ClientTable.tableTitle;
+import static main.ClientTable.*;
+import static main.NewClient.newClientInfo;
 
 public class Form extends JFrame {
+    private JButton buttonStatistics = new JButton("Статистика посещений");
     private JButton button_new_client = new JButton("Новый клиент");
     private JTextField field_find_client = new JTextField(40);
     private JLabel label_find = new JLabel("Поиск");
     private JButton button_find = new JButton("Найти");
-    private JScrollPane scrollpan_clients;
-    public JTable tableClints;
+    private JButton buttonNewSubscription = new JButton("Абонементы");
+    private JScrollPane scrollpan_clients, scrollpan_clientsBirthday;
+    public static JTable tableClints;
     private int heightFirstLine;
+    private static JTextField fieldNowInGym = new JTextField(20);
+    private JLabel labelNowInGym = new JLabel("Сейчас в зале");
+    private static JTable tableBirthdayToday;
+    private JLabel labelBirthdayToday = new JLabel("День рождения сегодня");
+
+    public static DefaultTableModel dm = new DefaultTableModel();
+    private static int countInGym = 0;
+    private TableRowSorter<TableModel> sorter;
+
+
+    public Form(int i){
+        //для вызова нестатического метода
+    }
 
     //добавление компонентов на форму
     public Form() {
@@ -35,22 +55,35 @@ public class Form extends JFrame {
         setLayout(null);
 
         //добавление компонентов
-        add(button_new_client).setBounds(20,20,200, heightFirstLine);
+        add(button_new_client).setBounds(20,20,230, heightFirstLine);
         add(label_find).setBounds(420,20,100,heightFirstLine);
-        add(field_find_client).setBounds(510,20,710,heightFirstLine+1);
+        add(field_find_client).setBounds(510,20,610,heightFirstLine+1);
+        add(buttonNewSubscription).setBounds(1250,20,230,heightFirstLine);
 
 
         //действия компонентов
         componentAction();
+
+        //this.setFocusable(true);
 
         //размер экрана
         Dimension screenSize = Toolkit.getDefaultToolkit ().getScreenSize ();
 
         //add(scrollPane);
         loadClientTable();
+        configurTable();
 
         //загрузка таблицы клиентов
-        add(scrollpan_clients).setBounds(20,90,screenSize.width-40,600);
+        add(scrollpan_clients).setBounds(20,90,screenSize.width-40,500);
+
+        add(labelNowInGym).setBounds(20,670,200,20);
+        add(fieldNowInGym).setBounds(210,670,40,27);
+
+        add(labelBirthdayToday).setBounds(580,625,400,30);
+        loadTableBirthday();
+        add(scrollpan_clientsBirthday).setBounds(510,660,450,70);
+
+        add(buttonStatistics).setBounds(1250,625,230,heightFirstLine);
     }
 
     //установка размеров компонентов
@@ -59,16 +92,34 @@ public class Form extends JFrame {
     }
 
 
-
     //настройка компонентов
     private void configurateComponent() {
         String FONT_FAMILY = "Arial";
-        Font font_button = new Font(FONT_FAMILY, Font.PLAIN,20);
-        Font font_label = new Font(FONT_FAMILY, Font.PLAIN, 30);
+        Font font_button = new Font(FONT_FAMILY, Font.PLAIN,18);
+        Font font_label = new Font(FONT_FAMILY, Font.PLAIN, 28);
+        Font font_table = new Font(FONT_FAMILY, Font.PLAIN, 13);
         button_new_client.setFont(font_button);
         label_find.setFont(font_label);
         field_find_client.setFont(font_button);
         button_find.setFont(font_button);
+        buttonNewSubscription.setFont(font_button);
+        labelNowInGym.setFont(font_label);
+        fieldNowInGym.setFont(font_label);
+        labelBirthdayToday.setFont(font_label);
+        buttonStatistics.setFont(font_button);
+    }
+
+
+    public void loadTableBirthday(){
+        String[][] infa = BirthdayTable.loadBirthdayTable();
+        String[] title = {"ФИО","Номер карты","Телефон"};
+        tableBirthdayToday = new JTable(infa,title);
+        tableBirthdayToday.getColumnModel().getColumn(0).setPreferredWidth(150);
+        tableBirthdayToday.getColumnModel().getColumn(1).setPreferredWidth(80);
+        tableBirthdayToday.getColumnModel().getColumn(2).setPreferredWidth(110);
+
+        scrollpan_clientsBirthday = new JScrollPane(tableBirthdayToday);
+        tableBirthdayToday.setFillsViewportHeight(true);
     }
 
 
@@ -77,113 +128,101 @@ public class Form extends JFrame {
         button_new_client.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFrame form_new_client = run1(new NewClient(600), 600,600);
+                run1(new NewClient(305), 305,375);
+            }
+        });
+
+        buttonNewSubscription.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                run1(new NewSubscription(), 240,250);
+            }
+        });
+
+        buttonStatistics.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                run1(new TrainyStatistics(),300,320);
+            }
+        });
+
+        field_find_client.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String text = field_find_client.getText();
+                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 0, 1));
             }
         });
     }
 
     //загрузка таблицы клиентов
     public void loadClientTable(){
+        loadInformation(dm);
+        tableClints = new JTable(dm);
+        tableClints.getColumn("Добавление аб-а").setCellRenderer(new ButtonRenderer());
+        tableClints.getColumn("Добавление аб-а").setCellEditor(new ButtonEditorAddSubscription(new JCheckBox()));
+        tableClints.getColumn("...").setCellRenderer(new ButtonRenderer());
+        tableClints.getColumn("...").setCellEditor(new ButtonEditorChangeInfo(new JCheckBox()));
+        tableClints.getColumn("Пришел").setCellRenderer(new ButtonRenderer());
+        tableClints.getColumn("Пришел").setCellEditor(new ButtonEditorPlusTrainy(new JCheckBox()));
+        tableClints.getColumn("Ушел").setCellRenderer(new ButtonRenderer());
+        tableClints.getColumn("Ушел").setCellEditor(new ButtonEditorEndTrainy(new JCheckBox()));
 
-        loadInformation();
 
-        tableClints = new JTable(clientInfo,tableTitle);
-
-        //устанавливаем ширирину ячеек
-        tableClints.getColumnModel().getColumn(0).setPreferredWidth(450);
-        tableClints.getColumnModel().getColumn(1).setPreferredWidth(250);
-        tableClints.getColumnModel().getColumn(2).setPreferredWidth(200);
-        tableClints.getColumnModel().getColumn(3).setPreferredWidth(400);
-        tableClints.getColumnModel().getColumn(4).setPreferredWidth(150);
-        tableClints.getColumnModel().getColumn(5).setPreferredWidth(150);
-        tableClints.getColumnModel().getColumn(6).setPreferredWidth(150);
-        tableClints.getColumnModel().getColumn(7).setPreferredWidth(50);
+        JScrollPane scroll = new JScrollPane(tableClints);
+        getContentPane().add(scroll);
+        tableClints.getColumnModel().getColumn(0).setPreferredWidth(350);
+        tableClints.getColumnModel().getColumn(1).setPreferredWidth(100);
+        tableClints.getColumnModel().getColumn(2).setPreferredWidth(250);
+        tableClints.getColumnModel().getColumn(3).setPreferredWidth(200);
+        tableClints.getColumnModel().getColumn(4).setPreferredWidth(400);
+        tableClints.getColumnModel().getColumn(5).setPreferredWidth(80);
+        tableClints.getColumnModel().getColumn(6).setPreferredWidth(80);
+        tableClints.getColumnModel().getColumn(7).setPreferredWidth(150);
+        tableClints.getColumnModel().getColumn(8).setPreferredWidth(150);
+        tableClints.getColumnModel().getColumn(9).setPreferredWidth(50);
 
         scrollpan_clients = new JScrollPane(tableClints);
         tableClints.setFillsViewportHeight(true);
 
+        sorter = new TableRowSorter<>(tableClints.getModel());
+        tableClints.setRowSorter(sorter);
+    }
+
+    public static void addTableRow(){
+        dm.addRow(newClientInfo);
+        Object[][] temparray = Arrays.copyOf(clientInfo,clientInfo.length+1);
+        temparray[clientInfo.length] = newClientInfo;
+        clientInfo = Arrays.copyOf(clientInfo,temparray.length);
+        clientInfo = temparray;
+        newClientInfo = null;
+        temparray = null;
+    }
+
+
+    public static void redreshPersonInfoInTable(int index, Object[] tempArray){
+        dm.insertRow(index,tempArray);
+        dm.removeRow(index+1);
+        newClientInfo = null;
+    }
+
+    public static void peopleInGym(int i){
+        countInGym = countInGym + i;
+        fieldNowInGym.setText(countInGym+"");
+    }
+
+
+    public void configurTable() {
+
     }
 }
-
-
-/* public Form() {
-        //настройка шрифтов
-        configurateComponent();
-
-        //настройка макета
-        GridBagLayout gbl = new GridBagLayout();
-        setLayout(gbl);
-
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.NORTH;
-        c.fill = GridBagConstraints.NONE;
-        c.weighty = 0.5;
-
-        //кнопка новый клиент
-        c.gridx = 0;
-        c.gridy = 0;
-        c.insets = new Insets(20, 20, 0, 0);
-        c.ipadx = 20;
-        c.ipady = 5;
-        c.weightx = 0.2;
-        c.gridheight = 1;
-        c.gridwidth  = 1;
-        gbl.setConstraints(button_new_client, c);
-        add(button_new_client);
-
-        //надпись найти
-        c.gridx = 1;
-        c.anchor = GridBagConstraints.NORTHEAST;
-        c.insets = new Insets(18,40,0,-20);
-        gbl.setConstraints(label_find, c);
-        add(label_find);
-
-        //текстовое поле поиск
-        c.gridx = 2;
-        c.gridy = 0;
-        c.weightx = 0.1;
-        c.anchor = GridBagConstraints.NORTH;
-        c.insets = new Insets(20,0,0,0);
-        c.ipady = 12;
-        gbl.setConstraints(field_find_client, c);
-        add(field_find_client);
-
-        //кнопка найти
-        c.gridx = 3;
-        c.weightx = 1;
-        c.ipady = 5;
-        c.anchor = GridBagConstraints.NORTHWEST;
-        c.insets = new Insets(20,0,0,0);
-        gbl.setConstraints(button_find, c);
-        add(button_find);
-
-        //действия компонентов
-        componentAction();
-
-        //размер экрана
-        Dimension screenSize = Toolkit.getDefaultToolkit ().getScreenSize ();
-
-        //загрузка таблицы клиентов
-        //setLayout(null);
-        String[][] clientInfo = new String[0][0];
-        tableClints = new JTable(clientInfo,tableTitle);
-        TableColumn column = null;
-        for (int i = 0; i < tableTitle.length; i++) {
-            column = tableClints.getColumnModel().getColumn(i);
-            if (i == 2) {
-                column.setPreferredWidth(100); //third column is bigger
-            } else {
-                column.setPreferredWidth(400);
-            }
-        }
-
-        c.gridx = 0;
-        c.gridy = 1;
-        c.gridwidth = GridBagConstraints.REMAINDER;
-        JScrollPane scrollPane = new JScrollPane(tableClints);
-        gbl.setConstraints(scrollPane, c);
-        add(scrollPane).setBounds(20,70,screenSize.width,500);
-        //add(scrollPane);
-        loadClientTable();
-    }
-*/
