@@ -3,6 +3,7 @@ package main;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
@@ -101,9 +102,9 @@ public class NewSubscription extends JFrame {
                 comboboxChange.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        try {
-                            BufferedReader reader = new BufferedReader(new FileReader(fileTypeSubscription));
-                            String tempLine,typeSubscription,choosedSubscription = comboboxChange.getSelectedItem()+"";
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileTypeSubscription), StandardCharsets.UTF_8))){
+
+                            String tempLine,typeSubscription,choosedSubscription = comboboxChange.getSelectedItem()+"|";
                             StringBuffer line;
                             while ((tempLine = reader.readLine()) != null){
                                 if (tempLine.contains(choosedSubscription)) {
@@ -136,31 +137,17 @@ public class NewSubscription extends JFrame {
     public String[] readTypeSubscription() {
         ArrayList<String> tempArrayNameSubscription = new ArrayList<>();
         String[] arrayNameSubscription;
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(fileTypeSubscription));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileTypeSubscription), StandardCharsets.UTF_8))){
+
             String tempLine,typeSubscription;
             StringBuffer line;
             while ((tempLine = reader.readLine()) != null){
                 line = new StringBuffer(tempLine);
                 tempArrayNameSubscription.add(line.substring(0,line.indexOf("|",1)));
-                /*fieldName.setText(line.substring(0,line.indexOf("|",1)));
-                line.delete(0,line.indexOf("|",1));
-                fieldDate.setText(line.substring(0,line.indexOf("|",1)));
-                line.delete(0,line.indexOf("|",1));
-                typeSubscription = line.substring(0,line.indexOf("|",0));
-                if (typeSubscription.equals("lim")){
-                    radioLin.setSelected(true);
-                    line.delete(0,line.indexOf("|",1));
-                    fieldCount.setText(line.substring(0,line.indexOf("|",1)));
-                }
-                else {
-                    radioUnlim.setSelected(true);
-                }
-                */
             }
         }
         catch (Exception e){
-
+            e.printStackTrace();
         }
 
         arrayNameSubscription = new String[tempArrayNameSubscription.size()];
@@ -171,8 +158,9 @@ public class NewSubscription extends JFrame {
     }
 
     public void writNewSubscription(){
-        try{
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fileTypeSubscription,true));
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(fileTypeSubscription,true), StandardCharsets.UTF_8))){
+
 
             if (radioLin.isSelected()){
                 writer.write(fieldName.getText()+"|"+fieldDate.getText()+"|lin|"+fieldCount.getText()+"|\n");
@@ -190,10 +178,10 @@ public class NewSubscription extends JFrame {
     }
 
     public void changeSubcription() {
-        try {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileTypeSubscription), StandardCharsets.UTF_8))){
             ArrayList<String> wtiteInfoTempFile = new ArrayList<>();
-            BufferedReader reader = new BufferedReader(new FileReader(fileTypeSubscription));
-            String  line, changedLine = comboboxChange.getSelectedItem()+"";
+
+            String  line, changedLine = comboboxChange.getSelectedItem()+"|";
             while ((line = reader.readLine()) != null){
                 if (line.contains(changedLine)){
                     if (radioLin.isSelected()){
@@ -209,7 +197,7 @@ public class NewSubscription extends JFrame {
             }
             reader.close();
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(fileTypeSubscription));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileTypeSubscription), StandardCharsets.UTF_8));
             for (int i = 0; i < wtiteInfoTempFile.size(); i++) {
                 writer.write(wtiteInfoTempFile.get(i));
             }

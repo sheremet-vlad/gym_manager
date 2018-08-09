@@ -5,11 +5,12 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import static main.Form.peopleInGym;
 
 
 public class ButtonEditorMinusTrainy extends DefaultCellEditor {
@@ -64,15 +65,16 @@ public class ButtonEditorMinusTrainy extends DefaultCellEditor {
 
     //действие кнопки добавить абонемент
     private void actionButtnAddSubscription(){
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt",true));
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt",true), StandardCharsets.UTF_8))){
+
             Date date = new Date();
             SimpleDateFormat format1 = new SimpleDateFormat("HH.mm");
             String line;
             StringBuffer tempLine = new StringBuffer("");
             writer.write(format1.format(date)+" ");
             writer.close();
-            peopleInGym(-1);
+            Form.writeCountOfPeopleInGym(-1);
 
         }
         catch (Exception e){

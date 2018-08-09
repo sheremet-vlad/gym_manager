@@ -6,10 +6,9 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -36,7 +35,9 @@ public class Form extends JFrame {
 
     public static DefaultTableModel dm = new DefaultTableModel();
     private static int countInGym = 0;
-    private TableRowSorter<TableModel> sorter;
+
+    public static final String dirPathForFile = "E:\\temp_file";
+    public static final String PEOPLE_IN_GYM_FILE = "E:\\temp_file\\peopleInGym.txt";
 
 
     public Form(int i){
@@ -56,9 +57,13 @@ public class Form extends JFrame {
 
         //добавление компонентов
         add(button_new_client).setBounds(20,20,230, heightFirstLine);
-        add(label_find).setBounds(420,20,100,heightFirstLine);
-        add(field_find_client).setBounds(510,20,610,heightFirstLine+1);
-        add(buttonNewSubscription).setBounds(1250,20,230,heightFirstLine);
+        add(label_find).setBounds(290,20,100,heightFirstLine);
+        add(field_find_client).setBounds(380,20,560,heightFirstLine+1);
+        add(button_find).setBounds(1000,20,230,heightFirstLine);
+
+        //устанавливаем кнопку найти кноппкой по умолчанию
+        JRootPane rootPane = SwingUtilities.getRootPane(button_find);
+        rootPane.setDefaultButton(button_find);
 
 
         //действия компонентов
@@ -72,6 +77,7 @@ public class Form extends JFrame {
         //add(scrollPane);
         loadClientTable();
         configurTable();
+        readCountOfPeopleInGym();
 
         //загрузка таблицы клиентов
         add(scrollpan_clients).setBounds(20,90,screenSize.width-40,500);
@@ -79,11 +85,14 @@ public class Form extends JFrame {
         add(labelNowInGym).setBounds(20,670,200,20);
         add(fieldNowInGym).setBounds(210,670,40,27);
 
-        add(labelBirthdayToday).setBounds(580,625,400,30);
+        add(labelBirthdayToday).setBounds(450,825,400,30);
         loadTableBirthday();
-        add(scrollpan_clientsBirthday).setBounds(510,660,450,70);
+        add(scrollpan_clientsBirthday).setBounds(380,860,450,70);
 
-        add(buttonStatistics).setBounds(1250,625,230,heightFirstLine);
+        add(buttonStatistics).setBounds(1000,825,230,heightFirstLine);
+        add(buttonNewSubscription).setBounds(1000,900,230,heightFirstLine);
+
+
     }
 
     //установка размеров компонентов
@@ -142,25 +151,59 @@ public class Form extends JFrame {
         buttonStatistics.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                run1(new TrainyStatistics(),300,320);
+                run1(new TrainyStatistics(),440,440);
             }
         });
 
-        field_find_client.addKeyListener(new KeyListener() {
+        button_find.addActionListener(new ActionListener() {
             @Override
-            public void keyTyped(KeyEvent e) {
-
-            }
-
-            @Override
-            public void keyPressed(KeyEvent e) {
-
-            }
-
-            @Override
-            public void keyReleased(KeyEvent e) {
+            public void actionPerformed(ActionEvent e) {
                 String text = field_find_client.getText();
-                sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text, 0, 1));
+                for (int i = 0; i < ClientTable.clientInfo.length; i++) {
+                    if (text.equals(ClientTable.clientInfo[i][1]) || (ClientTable.clientInfo[i][0]+"").contains(text)){
+                        tableClints.setRowSelectionInterval(i,i);
+                        tableClints.scrollRectToVisible(tableClints.getCellRect(i,0,true));
+                        break;
+                    }
+                }
+            }
+        });
+
+
+        this.addWindowListener(new WindowListener() {
+            @Override
+            public void windowOpened(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowClosed(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowIconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeiconified(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowActivated(WindowEvent e) {
+
+            }
+
+            @Override
+            public void windowDeactivated(WindowEvent e) {
+
             }
         });
     }
@@ -171,8 +214,8 @@ public class Form extends JFrame {
         tableClints = new JTable(dm);
         tableClints.getColumn("Добавление аб-а").setCellRenderer(new ButtonRenderer());
         tableClints.getColumn("Добавление аб-а").setCellEditor(new ButtonEditorAddSubscription(new JCheckBox()));
-        tableClints.getColumn("...").setCellRenderer(new ButtonRenderer());
-        tableClints.getColumn("...").setCellEditor(new ButtonEditorChangeInfo(new JCheckBox()));
+        tableClints.getColumn("Карта клиента").setCellRenderer(new ButtonRenderer());
+        tableClints.getColumn("Карта клиента").setCellEditor(new ButtonEditorChangeInfo(new JCheckBox()));
         tableClints.getColumn("Пришел").setCellRenderer(new ButtonRenderer());
         tableClints.getColumn("Пришел").setCellEditor(new ButtonEditorPlusTrainy(new JCheckBox()));
         tableClints.getColumn("Ушел").setCellRenderer(new ButtonRenderer());
@@ -195,8 +238,8 @@ public class Form extends JFrame {
         scrollpan_clients = new JScrollPane(tableClints);
         tableClints.setFillsViewportHeight(true);
 
-        sorter = new TableRowSorter<>(tableClints.getModel());
-        tableClints.setRowSorter(sorter);
+        /*sorter = new TableRowSorter<>(tableClints.getModel());
+        tableClints.setRowSorter(sorter);*/
     }
 
     public static void addTableRow(){
@@ -216,10 +259,32 @@ public class Form extends JFrame {
         newClientInfo = null;
     }
 
-    public static void peopleInGym(int i){
-        countInGym = countInGym + i;
-        fieldNowInGym.setText(countInGym+"");
+    public static void readCountOfPeopleInGym(){
+        int nowInGym = 0;
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(PEOPLE_IN_GYM_FILE), StandardCharsets.UTF_8))) {
+            nowInGym = Integer.parseInt(reader.readLine());
+            fieldNowInGym.setText(nowInGym+"");
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        countInGym = nowInGym;
+
     }
+
+
+    public static void writeCountOfPeopleInGym(int i){
+        countInGym += i;
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(PEOPLE_IN_GYM_FILE), StandardCharsets.UTF_8))) {
+            writer.write(Integer.toString(countInGym));
+            fieldNowInGym.setText(countInGym+"");
+            writer.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public void configurTable() {

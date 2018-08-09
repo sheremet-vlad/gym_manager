@@ -3,18 +3,20 @@ package main;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 public class ClientTable {
-    public static String[] tableTitle = {"Клиент","Карточка","Телефон","Текущий абонемент","Срок действия (ост. посещения)","Пришел","Ушел","Дата рождения","Добавление аб-а","..."};
+    public static String[] tableTitle = {"Клиент","Карточка","Телефон","Текущий абонемент","Срок действия (ост. посещения)","Пришел","Ушел","Дата рождения","Добавление аб-а","Карта клиента"};
     public static Object[][] clientInfo;
     public static String clientsFile = "E:\\temp_file\\clients.txt";
 
     public static void loadInformation(DefaultTableModel dm){
-        try {
-            BufferedReader countLength = new BufferedReader(new FileReader(clientsFile));
+        try (BufferedReader countLength = new BufferedReader(new InputStreamReader(new FileInputStream(clientsFile), StandardCharsets.UTF_8));
+             BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(clientsFile), StandardCharsets.UTF_8))){
+
 
             //размер таблицы
             LineNumberReader count = new LineNumberReader(countLength);
@@ -28,7 +30,7 @@ public class ClientTable {
 
 
             //заполнение таблицы
-            BufferedReader reader = new BufferedReader(new FileReader(clientsFile));
+
             StringBuffer templine;
             String line,name;
             int index = 0;
@@ -127,12 +129,10 @@ public class ClientTable {
     }
 
     public static void writeEndingSubscription(String fileName){
-        try {
-            int countInFile, countLost;
-            String endAndStartDate;
-            BufferedReader reader = new BufferedReader(new FileReader( NewClient.dirPathForClientPath+fileName+".txt"));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+fileName+".txt"), StandardCharsets.UTF_8));
+             BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(NewClient.dirPathForClientPath+fileName+".txt",true), StandardCharsets.UTF_8))){
+
             String templine,subsInfo,name;
-            StringBuffer line;
             while ((templine = reader.readLine()) != null) {
                 if (templine.equals("") || templine.equals("M") || templine.equals("Ж") || templine.charAt(templine.length() - 1) == '>') {
                     subsInfo = templine;
@@ -141,24 +141,8 @@ public class ClientTable {
             }
             reader.close();
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(NewClient.dirPathForClientPath+fileName+".txt",true));
             writer.write(">");
-                /*else {
-                    line = new StringBuffer(templine);
-                    name = line.substring(0,line.indexOf("|"));
-                    line.delete(0,line.indexOf("|",1)+1);
-                    endAndStartDate = line.substring(0,line.indexOf("|"));
-                    line.delete(0,line.indexOf("||",1)+2);
-                    countInFile = Integer.parseInt(line.substring(0,line.indexOf("|")));
-                    countLost = countInFile;
-                    subsInfo = endAndStartDate+" ("+countLost+")";
-                    if (checkSubscriptionOnDate(endAndStartDate)) {
-
-                    }
-                    else {
-
-                    }*/
-                writer.close();
+            writer.close();
 
         }
         catch (Exception e){

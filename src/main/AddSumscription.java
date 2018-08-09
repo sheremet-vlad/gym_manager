@@ -5,6 +5,7 @@ import javax.swing.text.MaskFormatter;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Date;
 import java.text.SimpleDateFormat;
@@ -79,7 +80,9 @@ public class AddSumscription extends JFrame{
                     //проверка текущего абонемента
                     String templine;
                     boolean checkOnActivSubscription = true;
-                    BufferedReader reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath + clientInfo[index][0] + ".txt"));
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(
+                            new FileInputStream(NewClient.dirPathForClientPath + clientInfo[index][0] + ".txt"), StandardCharsets.UTF_8));
+
                     while ((templine = reader.readLine()) != null){
                         if (!(templine.equals("") || templine.equals("M") || templine.equals("Ж") || templine.charAt(templine.length()-1) == '>')){
                             checkOnActivSubscription = false;
@@ -89,8 +92,10 @@ public class AddSumscription extends JFrame{
 
                     if (dataNow.before(dataConmboBox.getTime())) {
                         String clientName = clientInfo[index][0] + "";
-                        //System.out.println(clientName);
-                        BufferedWriter writer = new BufferedWriter(new FileWriter(NewClient.dirPathForClientPath + clientName + ".txt", true));
+
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                                new FileOutputStream(NewClient.dirPathForClientPath + clientName + ".txt", true),StandardCharsets.UTF_8));
+
                         dataConmboBox.setTime(format1.parse(field.getText()));
                         subscriptinInfa = defineSubscriptionParametr(comboBoxType.getSelectedItem() + "|",dataConmboBox.getTime());
                         if (checkOnActivSubscription){
@@ -118,9 +123,8 @@ public class AddSumscription extends JFrame{
     private static String defineSubscriptionParametr(String nameInComboBox, Date startDate){
         String line;
         StringBuffer tempLine,subscriptionInfo = new StringBuffer("");
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(NewSubscription.fileTypeSubscription));
 
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(NewSubscription.fileTypeSubscription), StandardCharsets.UTF_8))) {
             while ((line = reader.readLine()) != null){
                 if (line.contains(nameInComboBox)){
                     String name,dataString,type,count,endAndStartTime;      //it is all about subscription
@@ -147,6 +151,7 @@ public class AddSumscription extends JFrame{
         catch (Exception ee){
             System.out.println("");
         }
+
         return subscriptionInfo+"";
     }
 

@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 
 import static main.ClientTable.tableTitle;
 import static main.Form.addTableRow;
@@ -110,8 +111,8 @@ public class NewClient extends JFrame {
         button_finish.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
-                    FileWriter write = new FileWriter(ClientTable.clientsFile,true);
+                try (BufferedWriter write = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ClientTable.clientsFile, true), StandardCharsets.UTF_8))){
+
                     String  name = fieldFirstName.getText(),
                             secondName = fieldSecondName.getText(),
                             surname = fieldSurname.getText(),
@@ -149,15 +150,14 @@ public class NewClient extends JFrame {
                         write.append(phone+"|\n");
                         dispose();
                         File clientFile = new File(dirPathForClientPath+surname+" "+name+" "+secondName+".txt");
-                        BufferedWriter writer = new BufferedWriter(new FileWriter(clientFile));
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(clientFile), StandardCharsets.UTF_8));
                         clientFile.createNewFile();
                         if (radioMan.isSelected()){
-                            writer.write("M\n");
+                            writer.write("M");
                         }
                         else {
-                            writer.write("Ж\n");
+                            writer.write("Ж");
                         }
-                        writer.close();
                         addTableRow();
                     }
                     write.flush();

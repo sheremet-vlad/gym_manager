@@ -10,19 +10,13 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.LinkedList;
 
 import static main.ClientTable.clientInfo;
-import static main.ClientTable.tableTitle;
-import static main.Form.addTableRow;
 import static main.Form.redreshPersonInfoInTable;
 
 public class ClientPage extends JFrame {
     private int COUNT_COLUMNS = 30;
     public static Object[] newClientInfo;
-    public static String dirPathForClientPath = "E:\\temp_file\\clients\\";
     private static String lineInfo;
 
     private JTextField  fieldFirstName = new JTextField(COUNT_COLUMNS),
@@ -124,8 +118,9 @@ public class ClientPage extends JFrame {
         String[][] trainyInfo;
         String[][] subscriptionInfo;
         int indexForStartCopy = 0,countOfSubscription = 0,countOfTrainy = 0;
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"), StandardCharsets.UTF_8));
+             BufferedReader reader1 = new BufferedReader(new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"), StandardCharsets.UTF_8))) {
+
             reader.readLine();
             String line,subscriptionName;
             StringBuffer tempLine = new StringBuffer("");
@@ -137,12 +132,11 @@ public class ClientPage extends JFrame {
                 }
             }
             reader.close();
-            reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"));
             trainyInfo = new String[countOfTrainy][2];
             subscriptionInfo = new String[countOfSubscription][2];
             int i = 0, j = 0;
-            reader.readLine();
-            while ((line = reader.readLine()) != null) {
+            reader1.readLine();
+            while ((line = reader1.readLine()) != null) {
                 tempLine = new StringBuffer(line);
                 subscriptionName = tempLine.substring(0,tempLine.indexOf("|"));
                 indexForStartCopy = tempLine.indexOf("|")+1;
@@ -156,7 +150,19 @@ public class ClientPage extends JFrame {
                     j++;
                 }
                 i++;
+                if (tempLine.indexOf(">") != -1) {
+                    trainyInfo[j][0] = subscriptionName;
+                    trainyInfo[j][1] = tempLine.substring(indexForStartCopy, tempLine.indexOf(">"));
+                    j++;
+                }
+
+                if ((tempLine.lastIndexOf(" ")+22) > tempLine.length()){
+                    trainyInfo[j][0] = subscriptionName;
+                    trainyInfo[j][1] = tempLine.substring(tempLine.lastIndexOf(" ")+1, tempLine.length());
+                    j++;
+                }
             }
+            reader1.close();
             tableHistorySubscripton = new JTable(subscriptionInfo,titleSubscriptionTable);
             tableHistoryTrainy = new JTable(trainyInfo,titleTrainyTablee);
 
@@ -164,7 +170,7 @@ public class ClientPage extends JFrame {
             tableHistorySubscripton.setFillsViewportHeight(true);
 
             tableHistorySubscripton.getColumnModel().getColumn(0).setPreferredWidth(130);
-            tableHistoryTrainy.getColumnModel().getColumn(0).setPreferredWidth(125);
+            tableHistoryTrainy.getColumnModel().getColumn(0).setPreferredWidth(100);
 
             scrollPane_subscription = new JScrollPane(tableHistorySubscripton);
             scrollPane_trainy = new JScrollPane(tableHistoryTrainy);
@@ -220,13 +226,11 @@ public class ClientPage extends JFrame {
                         write.append(phone+"|");
                         Files.write(path, new String(Files.readAllBytes(path), charset).replace(lineInfo, write + "").getBytes(charset));
 
-                        System.out.println(lineInfo.substring(0,lineInfo.indexOf('|')));
-                        System.out.println(write.substring(0,write.indexOf("|")));
                         File oldFile = new File(NewClient.dirPathForClientPath+lineInfo.substring(0,lineInfo.indexOf('|'))+".txt");
                         File newFile = new File(NewClient.dirPathForClientPath+write.substring(0,write.indexOf("|"))+".txt");
 
-                        BufferedReader reader = new BufferedReader(new FileReader(oldFile));
-                        BufferedWriter writer = new BufferedWriter(new FileWriter(newFile));
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(oldFile), StandardCharsets.UTF_8));
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(newFile), StandardCharsets.UTF_8));
                         String line;
                         int indexForNewLine = 0;
                         while ((line = reader.readLine()) != null){
@@ -243,7 +247,7 @@ public class ClientPage extends JFrame {
 
                         Path pathForDelete = Paths.get(oldFile+"");
                         Files.delete(pathForDelete);
-
+                        dispose();
                     }
                 }
                 catch (NoSuchFileException x) {
@@ -263,11 +267,11 @@ public class ClientPage extends JFrame {
     }
 
     private void loadClietInfoToField(int index){
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(ClientTable.clientsFile));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(ClientTable.clientsFile), StandardCharsets.UTF_8));
+             BufferedReader reader1 = new BufferedReader(new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+ClientTable.clientInfo[index][0]+".txt"), StandardCharsets.UTF_8))){
+
             String line;
             StringBuffer tempLine = new StringBuffer("");
-            System.out.println(ClientTable.clientInfo[index][0]+"|"+ClientTable.clientInfo[index][7]);
             while ((line = reader.readLine()) != null){
                 if (line.contains(ClientTable.clientInfo[index][0]+"|"+ClientTable.clientInfo[index][7])){
                     tempLine = new StringBuffer(line);
@@ -290,9 +294,8 @@ public class ClientPage extends JFrame {
             }
             reader.close();
 
-            reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath+ClientTable.clientInfo[index][0]+".txt"));
-            String manOrWoman = reader.readLine();
-            reader.close();
+            String manOrWoman = reader1.readLine();
+            reader1.close();
         }
         catch (Exception e) {
             e.printStackTrace();

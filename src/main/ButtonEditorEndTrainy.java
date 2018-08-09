@@ -5,9 +5,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,10 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import static main.ClientTable.checkSubscriptionOnDate;
 import static main.ClientTable.clientInfo;
-import static main.Form.peopleInGym;
 import static main.Form.redreshPersonInfoInTable;
 
 
@@ -74,17 +71,11 @@ public class ButtonEditorEndTrainy extends DefaultCellEditor {
 
     //действие кнопки добавить абонемент
     private void actionButtnAddSubscription(){
-        try {
-               /* BufferedWriter writer = new BufferedWriter(new FileWriter(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0] + ".txt", true));
-                Date date = new Date();
-                SimpleDateFormat format1 = new SimpleDateFormat("HH.mm");
-
-                writer.write(format1.format(date) + " ");
-                writer.close();
-                peopleInGym(-1);*/
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new FileInputStream(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt"), StandardCharsets.UTF_8))) {
             String line;
             StringBuffer templine = new StringBuffer(""), tempString = new StringBuffer();
-            BufferedReader reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt"));
+
             reader.readLine();
             while ((line = reader.readLine()) != null){
                 if (line.charAt(line.length()-1) !=  '>'){
@@ -101,16 +92,15 @@ public class ButtonEditorEndTrainy extends DefaultCellEditor {
                 SimpleDateFormat format1 = new SimpleDateFormat("HH.mm");
                 int lostcount = Integer.parseInt(templine.substring(templine.indexOf("||")+2,templine.lastIndexOf("|")));
                 templine.append(format1.format(date));
-                System.out.println(lostcount);
                 if (lostcount == 0){
                     templine.append(">");
                 }
-                Form.peopleInGym(-1);
+                Form.writeCountOfPeopleInGym(-1);
                 Files.write(path, new String(Files.readAllBytes(path), charset).replace(line, templine + "").getBytes(charset));
                 if (lostcount == 0){
                     clearSubscriprionInTable(row);
                 }
-
+            reader.close();
             }
         }
         catch (Exception e){
@@ -130,12 +120,14 @@ public class ButtonEditorEndTrainy extends DefaultCellEditor {
 
     private boolean checkOnActiveSubscription(int index){
         boolean check = false;
-        try {
-            BufferedReader reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"), StandardCharsets.UTF_8))) {
+
             String line;
             reader.readLine();
-            while ((line = reader.readLine()) != null){
-                if (line.charAt(line.length()-1) != '>'){
+            while((line =reader.readLine())!=null)
+
+            {
+                if (line.charAt(line.length() - 1) != '>') {
                     check = true;
                     AddSumscription.addToCLientTable(index, new StringBuffer(line));
                     break;
@@ -143,6 +135,7 @@ public class ButtonEditorEndTrainy extends DefaultCellEditor {
             }
         }
         catch (Exception e){}
+
         return check;
     }
 

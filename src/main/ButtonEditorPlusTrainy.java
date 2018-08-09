@@ -4,16 +4,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import static main.Form.redreshPersonInfoInTable;
@@ -71,11 +69,12 @@ public class ButtonEditorPlusTrainy extends DefaultCellEditor {
 
     //действие кнопки добавить абонемент
     private void actionButtnAddSubscription(){
-        try {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt"), StandardCharsets.UTF_8))){
             String line;
             StringBuffer templine = new StringBuffer(""), tempString = new StringBuffer();
-            BufferedReader reader = new BufferedReader(new FileReader(NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt"));
-            reader.readLine();
+
+            writeInfoInStatisticsFile(reader.readLine());
             while ((line = reader.readLine()) != null){
                 if (line.charAt(line.length()-1) !=  '>'){
                     templine = new StringBuffer(line);
@@ -96,7 +95,7 @@ public class ButtonEditorPlusTrainy extends DefaultCellEditor {
                 templine.append(" "+format1.format(date)+"_");
                 templine.replace(templine.indexOf("||")+2,templine.lastIndexOf("|"),lostcount+"");
                 refreshLostCountInTrainy(row,lostcount);
-                Form.peopleInGym(1);
+                Form.writeCountOfPeopleInGym(1);
                 Files.write(path, new String(Files.readAllBytes(path), charset).replace(line, templine + "").getBytes(charset));
             }
         } catch (Exception e){
@@ -110,6 +109,59 @@ public class ButtonEditorPlusTrainy extends DefaultCellEditor {
         newCount.replace(newCount.indexOf("(")+1,newCount.indexOf(")"),lostcount+"");
         tempArr[4] = newCount+"";
         redreshPersonInfoInTable(index,tempArr);
+    }
+
+    private static void writeInfoInStatisticsFile(String gender){
+        try (BufferedWriter writer = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(TrainyStatistics.fileNameForStatiscs,true), StandardCharsets.UTF_8))){
+            boolean checkForGender;       //true - M, false - Ж
+            if (gender.contains("M")) {
+                checkForGender = true;
+            } else {
+                checkForGender = false;
+            }
+
+            Calendar calendarTimeNow = Calendar.getInstance();
+            Calendar calendarFiveHours = Calendar.getInstance();
+            Calendar calendarTwelveHours = Calendar.getInstance();
+            SimpleDateFormat format1 = new SimpleDateFormat("HH.mm");
+            String dataNow = format1.format(calendarTimeNow.getTime());
+            calendarTimeNow.setTime(format1.parse(dataNow));
+            calendarFiveHours.setTime(format1.parse("17.00"));
+            calendarTwelveHours.setTime(format1.parse("12.00"));
+
+            if (calendarTimeNow.getTime().after(calendarTwelveHours.getTime())){
+                if (calendarTimeNow.getTime().after(calendarFiveHours.getTime())){
+                    if (checkForGender){
+                        writer.write("4");
+                    }
+                    else {
+                        writer.write("5");
+                    }
+                }
+                else {
+                    if (checkForGender){
+                        writer.write("2");
+                    }
+                    else {
+                        writer.write("3");
+                    }
+                }
+            }
+            else {
+                if (checkForGender){
+                    writer.write("0");
+                }
+                else {
+                    writer.write("1");
+                }
+            }
+            writer.flush();
+            writer.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
     }
 }
 
