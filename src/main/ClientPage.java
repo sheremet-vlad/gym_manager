@@ -3,6 +3,9 @@ package main;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.text.MaskFormatter;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -50,11 +53,18 @@ public class ClientPage extends JFrame {
     private JButton button_finish = new JButton("Изменить");
     private static JTable tableHistorySubscripton, tableHistoryTrainy;
     private JScrollPane scrollPane_subscription, scrollPane_trainy;
+    private JButton butttonDeleteSub = new JButton("Удалить посл. абон");
+    private JButton buttonDeleteTrainy = new JButton("Удалить посл. трен");
+    private JLabel logLabelSub = new JLabel("");
+    private JLabel logLabelTrainy = new JLabel("");
+    private Component form;
 
     public ClientPage(int form_height, int form_width, int index) {
         int lineSpace = 275;
         //шаблон
         setLayout(null);
+
+        form = this;
 
         //Бордер для линии
         Border border = BorderFactory.createLineBorder(Color.BLACK, 2);
@@ -70,7 +80,9 @@ public class ClientPage extends JFrame {
             fieldBirthday = new JFormattedTextField(mfData);
             fieldPhone = new JFormattedTextField(mfPhone);
         }
-        catch (Exception ee){}
+        catch (Exception ee){
+            ee.printStackTrace();
+        }
 
         manOrWoman.add(radioMan);
         manOrWoman.add(radioWoman);
@@ -95,10 +107,14 @@ public class ClientPage extends JFrame {
         add(fieldPhone).setBounds(110,170,130,20);
         add(labelCartNumber).setBounds(40,200,70,20);
         add(fieldWCartNumber).setBounds(110,200,130,20);
-        add(button_finish).setBounds(40,250,200,20);
+        add(button_finish).setBounds(40,250,200,25);
         add(labelNotPerfom).setBounds(90,300,200,20);
         add(labelHistotyOfSubscription).setBounds(380,10,230,30);
         add(labelHistotyOfTreiny).setBounds(730,10,230,30);
+        add(butttonDeleteSub).setBounds(320,355,260,25);
+        //add(buttonDeleteTrainy).setBounds(670,355,260,25);
+        add(logLabelSub).setBounds(320,390,260,25);
+       // add(logLabelTrainy).setBounds(670,390,260,25);
 
         loadClietInfoToField(index);
 
@@ -156,7 +172,8 @@ public class ClientPage extends JFrame {
                     j++;
                 }
 
-                if ((tempLine.lastIndexOf(" ")+22) > tempLine.length()){
+                if ((tempLine.lastIndexOf(" ")+22) > tempLine.length() && !(String.valueOf(tempLine).contains("Не активен")) ){
+                    System.out.println(tempLine.lastIndexOf(" ")+22);
                     trainyInfo[j][0] = subscriptionName;
                     trainyInfo[j][1] = tempLine.substring(tempLine.lastIndexOf(" ")+1, tempLine.length());
                     j++;
@@ -181,6 +198,20 @@ public class ClientPage extends JFrame {
     }
 
     private void buttonRegistrateAction(int index) {
+        butttonDeleteSub.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                UIManager.put("OptionPane.yesButtonText"   , "Да"    );
+                UIManager.put("OptionPane.noButtonText"    , "Нет"   );
+                UIManager.put("OptionPane.cancelButtonText", "Отмена");
+                Object[] options = { "Удалить последний абонемент?" };
+                int n = JOptionPane.showConfirmDialog(form,options);
+
+                if (n == JOptionPane.YES_OPTION) {
+                    deleteSub(index);
+                }
+            }
+        });
         button_finish.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -190,11 +221,11 @@ public class ClientPage extends JFrame {
                     Charset charset = StandardCharsets.UTF_8;
                     Path path = Paths.get(fileName);
                     StringBuffer write = new StringBuffer("");
-                    String  name = fieldFirstName.getText(),
-                            secondName = fieldSecondName.getText(),
-                            surname = fieldSurname.getText(),
+                    String  name = fieldFirstName.getText().trim(),
+                            secondName = fieldSecondName.getText().trim(),
+                            surname = fieldSurname.getText().trim(),
                             birthday = fieldBirthday.getText(),
-                            cartNumber = fieldWCartNumber.getText(),
+                            cartNumber = fieldWCartNumber.getText().trim(),
                             phone = fieldPhone.getText();
 
 
@@ -214,7 +245,8 @@ public class ClientPage extends JFrame {
                         newClientInfo[5] = "+";
                         newClientInfo[6] = "-";
                         newClientInfo[8] = "Добавить";
-                        newClientInfo[9] = "...";
+                        newClientInfo[9] = "Заморозить";
+                        newClientInfo[10] = "...";
                         redreshPersonInfoInTable(index,newClientInfo);
 
                         //запись в файл
@@ -227,13 +259,28 @@ public class ClientPage extends JFrame {
                         Files.write(path, new String(Files.readAllBytes(path), charset).replace(lineInfo, write + "").getBytes(charset));
 
                         File oldFile = new File(NewClient.dirPathForClientPath+lineInfo.substring(0,lineInfo.indexOf('|'))+".txt");
-                        File newFile = new File(NewClient.dirPathForClientPath+write.substring(0,write.indexOf("|"))+".txt");
-
                         BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(oldFile), StandardCharsets.UTF_8));
+                        String lineForReading;
+                        ArrayList<String> tempList = new ArrayList<>();
+                        tempList.add(reader.readLine());
+                        while ((lineForReading = reader.readLine()) != null) {
+                            tempList.add("\n" + lineForReading);
+                        }
+                        reader.close();
+
+
+
+                        Path pathForDelete = Paths.get(oldFile+"");
+                        Files.delete(pathForDelete);
+
+                        File newFile = new File(NewClient.dirPathForClientPath+write.substring(0,write.indexOf("|"))+".txt");
                         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(newFile), StandardCharsets.UTF_8));
+                        //int indexForNewLine = 0;
                         String line;
-                        int indexForNewLine = 0;
-                        while ((line = reader.readLine()) != null){
+                        for (int i = 0; i < tempList.size(); i++) {
+                            writer.write(tempList.get(i));
+                        }
+                        /*while ((line = reader.readLine()) != null){
                             if (indexForNewLine != 0){
                                 writer.write("\n"+line);
                             }
@@ -241,25 +288,21 @@ public class ClientPage extends JFrame {
                                 writer.write(line);
                                 indexForNewLine++;
                             }
-                        }
-                        reader.close();
+                        }*/
                         writer.close();
 
-                        Path pathForDelete = Paths.get(oldFile+"");
-                        Files.delete(pathForDelete);
                         dispose();
                     }
                 }
                 catch (NoSuchFileException x) {
-                    System.err.format("%s: no such" + " file or directory%n");
+                    x.printStackTrace();
                 } catch (DirectoryNotEmptyException x) {
-                    System.err.format("%s not empty%n");
+                    x.printStackTrace();
                 } catch (IOException x) {
-                    // File permission problems are caught here.
-                    System.err.println(x);
+                    x.printStackTrace();
                 }
                 catch (Exception ee){
-                    System.out.println("Error");
+                    ee.printStackTrace();
                 }
 
             }
@@ -298,6 +341,71 @@ public class ClientPage extends JFrame {
             reader1.close();
         }
         catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void deleteSub(int index) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                new FileInputStream(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"), StandardCharsets.UTF_8))) {
+            java.util.List<String> listOfSubs = new LinkedList<String>();
+            String line;
+
+            listOfSubs.add(reader.readLine());
+            while ((line = reader.readLine()) != null) {
+                listOfSubs.add("\n" + line);
+            }
+
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
+                    new FileOutputStream(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"), StandardCharsets.UTF_8));
+
+            int countOfSubs = listOfSubs.size() - 1;
+
+            if (listOfSubs.get(countOfSubs).contains("_")) {
+                countOfSubs = countOfSubs + 1;
+                logLabelSub.setText("Данный абонемент использовался");
+            } else {
+                logLabelSub.setText("Выполнено");
+                getActiveSubscription(index);
+            }
+
+            for (int i = 0; i < countOfSubs; i++) {
+                writer.write(listOfSubs.get(i));
+            }
+
+            //run1(new ClientPage(470,1000,index),1000,470);
+
+            writer.close();
+            //dispose();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getActiveSubscription(int index){
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(NewClient.dirPathForClientPath+clientInfo[index][0]+".txt"), StandardCharsets.UTF_8))) {
+            boolean flag = true;
+            String line;
+            LinkedList<String> listOfLines = new LinkedList();
+            String activeSubscription = "--";
+            listOfLines.add(reader.readLine());
+            while((line =reader.readLine())!=null) {
+                listOfLines.add(line);
+                if (line.charAt(line.length() - 1) != '>' && flag) {
+                    activeSubscription = line;
+                }
+            }
+
+            if (activeSubscription.equals("--")) {
+                Form.refreshValueInTable(activeSubscription, index, 4);
+                Form.refreshValueInTable(activeSubscription, index, 3);
+            } else {
+                String subName = activeSubscription.substring(0, activeSubscription.indexOf("|"));
+                AddSumscription.addToCLientTable(index, new StringBuffer(subName));
+            }
+
+        }
+        catch (Exception e){
             e.printStackTrace();
         }
     }

@@ -113,11 +113,11 @@ public class NewClient extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 try (BufferedWriter write = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(ClientTable.clientsFile, true), StandardCharsets.UTF_8))){
 
-                    String  name = fieldFirstName.getText(),
-                            secondName = fieldSecondName.getText(),
-                            surname = fieldSurname.getText(),
+                    String  name = fieldFirstName.getText().trim(),
+                            secondName = fieldSecondName.getText().trim(),
+                            surname = fieldSurname.getText().trim(),
                             birthday = fieldBirthday.getText(),
-                            cartNumber = fieldWCartNumber.getText(),
+                            cartNumber = fieldWCartNumber.getText().trim(),
                             phone = fieldPhone.getText();
 
 
@@ -139,7 +139,8 @@ public class NewClient extends JFrame {
                         newClientInfo[5] = "+";
                         newClientInfo[6] = "-";
                         newClientInfo[8] = "Добавить";
-                        newClientInfo[9] = "...";
+                        newClientInfo[9] = "Заморозить";
+                        newClientInfo[10] = "...";
 
                         //запись в файл
                         write.append(surname+" ");
@@ -150,15 +151,16 @@ public class NewClient extends JFrame {
                         write.append(phone+"|\n");
                         dispose();
                         File clientFile = new File(dirPathForClientPath+surname+" "+name+" "+secondName+".txt");
-                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(clientFile), StandardCharsets.UTF_8));
                         clientFile.createNewFile();
+                        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(dirPathForClientPath+surname+" "+name+" "+secondName+".txt"), StandardCharsets.UTF_8));
                         if (radioMan.isSelected()){
-                            writer.write("M");
+                            writer.append("M");
                         }
                         else {
-                            writer.write("Ж");
+                            writer.append("Ж");
                         }
                         addTableRow();
+                        writer.close();
                     }
                     write.flush();
                     write.close();

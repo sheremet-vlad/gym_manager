@@ -9,7 +9,7 @@ import java.util.Calendar;
 import java.util.Date;
 
 public class ClientTable {
-    public static String[] tableTitle = {"Клиент","Карточка","Телефон","Текущий абонемент","Срок действия (ост. посещения)","Пришел","Ушел","Дата рождения","Добавление аб-а","Карта клиента"};
+    public static String[] tableTitle = {"Клиент","Карточка","Телефон","Текущий абонемент","Срок действия (ост. посещения)","Пришел","Ушел","Дата рождения","Добавление аб-а","З-ть тек. абон.","Карта клиента","В зале"};
     public static Object[][] clientInfo;
     public static String clientsFile = "E:\\temp_file\\clients.txt";
 
@@ -50,7 +50,8 @@ public class ClientTable {
                 clientInfo[index][5] = "+";
                 clientInfo[index][6] = "-";
                 clientInfo[index][8] = "Добавить";
-                clientInfo[index][9] = "...";
+                clientInfo[index][9] = "Заморозить";
+                clientInfo[index][10] = "...";
                 readSubscriptionInfo(index,name);
                 index++;
             }
@@ -75,10 +76,13 @@ public class ClientTable {
         try{
             int countInFile, countLost;
             String endAndStartDate;
-            BufferedReader reader = new BufferedReader(new FileReader( NewClient.dirPathForClientPath+fileName+".txt"));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream( NewClient.dirPathForClientPath+fileName+".txt"), StandardCharsets.UTF_8));
             String templine,subsInfo,name;
             StringBuffer line;
             while ((templine = reader.readLine()) != null){
+                if (templine.charAt(templine.length() - 1) == '_') {
+                    clientInfo[index][11] = "В зале";
+                }
                 if (templine.equals("") || templine.equals("M") || templine.equals("Ж") || templine.charAt(templine.length()-1) == '>'){
                     clientInfo[index][3] = "--";
                     clientInfo[index][4] = "--";
@@ -92,7 +96,7 @@ public class ClientTable {
                     countInFile = Integer.parseInt(line.substring(0,line.indexOf("|")));
                     countLost = countInFile;
                     subsInfo = endAndStartDate+" ("+countLost+")";
-                    if (checkSubscriptionOnDate(endAndStartDate)) {
+                    if (templine.contains("Не активен") || checkSubscriptionOnDate(endAndStartDate)) {
                         clientInfo[index][3] = name;
                         clientInfo[index][4] = subsInfo;
                     }

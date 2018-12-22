@@ -1,6 +1,9 @@
 package main;
 
+import filter.DigitFilter;
+
 import javax.swing.*;
+import javax.swing.text.PlainDocument;
 import java.awt.event.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -18,9 +21,9 @@ public class NewSubscription extends JFrame {
     private JComboBox comboboxChange;
 
     private JTextField
-            fieldDate = new JTextField("Cрок Действия, дней",40),
+            fieldDate = new JTextField(),
             fieldName = new JTextField("Название абонемнта",40),
-            fieldCount = new JTextField("0");
+            fieldCount = new JTextField();
 
     private JRadioButton
                         radioCreate = new JRadioButton("Создать"),
@@ -30,8 +33,17 @@ public class NewSubscription extends JFrame {
 
     private JButton buttonPrfom = new JButton("Выполнить");
 
+    private JLabel labelData = new JLabel("Длительность, дн.");
+    private JLabel logLabel = new JLabel("");
+
     public NewSubscription(){
         setLayout(null);
+
+        PlainDocument doc = (PlainDocument) fieldDate.getDocument();
+        doc.setDocumentFilter(new DigitFilter());
+
+        PlainDocument doc1 = (PlainDocument) fieldCount.getDocument();
+        doc1.setDocumentFilter(new DigitFilter());
 
         createOrChange.add(radioChangee);
         createOrChange.add(radioCreate);
@@ -39,7 +51,8 @@ public class NewSubscription extends JFrame {
         add(radioChangee).setBounds(110,10,100,20);
 
         add(fieldName).setBounds(10,70,200,20);
-        add(fieldDate).setBounds(10,100,200,20);
+        add(labelData).setBounds(10,100,120,20);
+        add(fieldDate).setBounds(125,100,85,20);
 
         limOtUnlim.add(radioLin);
         limOtUnlim.add(radioUnlim);
@@ -53,6 +66,8 @@ public class NewSubscription extends JFrame {
         comboboxChange.setEditable(false);
 
         add(buttonPrfom).setBounds(55,180,100,20);
+
+        add(logLabel).setBounds(55,210,100,20);
 
         actionComponents();
         configereComponents();
@@ -122,11 +137,11 @@ public class NewSubscription extends JFrame {
                                         radioUnlim.setSelected(true);
                                         fieldCount.setText("");
                                     }
+                                    logLabel.setText("");
                                 }
                             }
                         }
                         catch (Exception eeeee){
-
                         }
                     }
                 });
@@ -158,59 +173,65 @@ public class NewSubscription extends JFrame {
     }
 
     public void writNewSubscription(){
-        try (BufferedWriter writer = new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(fileTypeSubscription,true), StandardCharsets.UTF_8))){
+        if (!fieldName.getText().equals("") && !fieldDate.getText().equals("") && ((!fieldCount.getText().equals("") && radioLin.isSelected()) || radioUnlim.isSelected())) {
+            try (BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(new FileOutputStream(fileTypeSubscription, true), StandardCharsets.UTF_8))) {
 
+                if (radioLin.isSelected()) {
+                    writer.write(fieldName.getText() + "|" + fieldDate.getText() + "|lin|" + fieldCount.getText() + "|\n");
+                } else {
+                    writer.write(fieldName.getText() + "|" + fieldDate.getText() + "|unlim|\n");
+                }
+                writer.close();
+                clearField();
+                logLabel.setText("");
 
-            if (radioLin.isSelected()){
-                writer.write(fieldName.getText()+"|"+fieldDate.getText()+"|lin|"+fieldCount.getText()+"|\n");
+            } catch (Exception e) {
+                System.out.println("not found file");
             }
-            else {
-                writer.write(fieldName.getText()+"|"+fieldDate.getText()+"|unlim|\n");
-            }
-            writer.close();
-            clearField();
-
-        }
-        catch (Exception e){
-            System.out.println("not found file");
+        } else {
+            logLabel.setText("Ошибка");
         }
     }
 
     public void changeSubcription() {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileTypeSubscription), StandardCharsets.UTF_8))){
-            ArrayList<String> wtiteInfoTempFile = new ArrayList<>();
-
-            String  line, changedLine = comboboxChange.getSelectedItem()+"|";
-            while ((line = reader.readLine()) != null){
-                if (line.contains(changedLine)){
-                    if (radioLin.isSelected()){
-                        wtiteInfoTempFile.add(fieldName.getText()+"|"+fieldDate.getText()+"|lin|"+fieldCount.getText()+"|\n");
-                    }
-                    else {
-                        wtiteInfoTempFile.add(fieldName.getText()+"|"+fieldDate.getText()+"|unlim|\n");
+        if (!fieldName.getText().equals("") && !fieldDate.getText().equals("") && ((!fieldCount.getText().equals("") && radioLin.isSelected()) || radioUnlim.isSelected())) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileTypeSubscription), StandardCharsets.UTF_8))) {
+                ArrayList<String> wtiteInfoTempFile = new ArrayList<>();
+                String line, changedLine = comboboxChange.getSelectedItem() + "|";
+                while ((line = reader.readLine()) != null) {
+                    if (line.contains(changedLine)) {
+                        if (radioLin.isSelected()) {
+                            wtiteInfoTempFile.add(fieldName.getText() + "|" + fieldDate.getText() + "|lin|" + fieldCount.getText() + "|\n");
+                        } else {
+                            wtiteInfoTempFile.add(fieldName.getText() + "|" + fieldDate.getText() + "|unlim|\n");
+                        }
+                    } else {
+                        wtiteInfoTempFile.add(line + "\n");
                     }
                 }
-                else {
-                    wtiteInfoTempFile.add(line+"\n");
+                reader.close();
+
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileTypeSubscription), StandardCharsets.UTF_8));
+                for (int i = 0; i < wtiteInfoTempFile.size(); i++) {
+                    writer.write(wtiteInfoTempFile.get(i));
                 }
-            }
-            reader.close();
+                writer.close();
+                clearField();
+                logLabel.setText("Выполнено");
 
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(fileTypeSubscription), StandardCharsets.UTF_8));
-            for (int i = 0; i < wtiteInfoTempFile.size(); i++) {
-                writer.write(wtiteInfoTempFile.get(i));
+            } catch (Exception ee) {
             }
-            writer.close();
-            clearField();
-
         }
-        catch (Exception ee){}
+        else {
+            logLabel.setText("Ошибка");
+        }
+
     }
 
     public void clearField(){
         fieldName.setText("Название абонемента");
-        fieldDate.setText("Cрок Действия, дней");
+        fieldDate.setText("");
         fieldCount.setText("");
         radioLin.setSelected(false);
         radioUnlim.setSelected(false);

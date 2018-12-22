@@ -61,7 +61,7 @@ public class ButtonEditorAddSubscription extends DefaultCellEditor {
 
     //действие кнопки добавить абонемент
     private void actionButtnAddSubscription(){
-        run1(new AddSumscription(row),240,200);
+        run1(new AddSumscription(row),240,140);
     }
 }
 

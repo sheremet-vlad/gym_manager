@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -84,23 +83,27 @@ public class ButtonEditorEndTrainy extends DefaultCellEditor {
                 }
             }
             line = templine+"";
+
             String fileName = NewClient.dirPathForClientPath+ClientTable.clientInfo[row][0]+".txt";
             Charset charset = StandardCharsets.UTF_8;
             Path path = Paths.get(fileName);
-            if (line.charAt(line.length()-1) == '_') {
-                Date date = new Date();
-                SimpleDateFormat format1 = new SimpleDateFormat("HH.mm");
-                int lostcount = Integer.parseInt(templine.substring(templine.indexOf("||")+2,templine.lastIndexOf("|")));
-                templine.append(format1.format(date));
-                if (lostcount == 0){
-                    templine.append(">");
+            if (line.length() > 0) {
+                if (line.charAt(line.length() - 1) == '_') {
+                    Date date = new Date();
+                    SimpleDateFormat format1 = new SimpleDateFormat("HH.mm");
+                    int lostcount = Integer.parseInt(templine.substring(templine.indexOf("||") + 2, templine.lastIndexOf("|")));
+                    templine.append(format1.format(date));
+                    if (lostcount == 0) {
+                        templine.append(">");
+                    }
+                    Form.writeCountOfPeopleInGym(-1);
+                    Form.refreshDataInPlusButton(row, 1);
+                    Files.write(path, new String(Files.readAllBytes(path), charset).replace(line, templine + "").getBytes(charset));
+                    if (lostcount == 0) {
+                        clearSubscriprionInTable(row);
+                    }
+                    reader.close();
                 }
-                Form.writeCountOfPeopleInGym(-1);
-                Files.write(path, new String(Files.readAllBytes(path), charset).replace(line, templine + "").getBytes(charset));
-                if (lostcount == 0){
-                    clearSubscriprionInTable(row);
-                }
-            reader.close();
             }
         }
         catch (Exception e){
@@ -138,6 +141,5 @@ public class ButtonEditorEndTrainy extends DefaultCellEditor {
 
         return check;
     }
-
 }
 

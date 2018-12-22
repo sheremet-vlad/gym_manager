@@ -17,8 +17,6 @@ import static main.Form.redreshPersonInfoInTable;
 public class AddSumscription extends JFrame{
     private JComboBox comboBoxType;
     private JButton buttonAdd = new JButton("Добавить");
-    private JLabel label1 = new JLabel("Дата начала");
-    private JFormattedTextField field;
     private ArrayList<String> subscriptionInfo = new ArrayList<>();
     private JLabel labelSucsOrNot = new JLabel("");
 
@@ -26,19 +24,11 @@ public class AddSumscription extends JFrame{
     public AddSumscription(int clientIndexInTable) {
         setLayout(null);
 
-        try {
-            MaskFormatter mfData = new MaskFormatter("##.##.####");
-            field = new JFormattedTextField(mfData);
-        }
-        catch (Exception ee){}
-
         comboBoxType = new JComboBox(loadTitle());
         add(comboBoxType).setBounds(10,10,200,20);
 
-        add(label1).setBounds(70,45,100,20);
-        add(field).setBounds(10,70,200,20);
-        add(buttonAdd).setBounds(40,100,125,20);
-        add(labelSucsOrNot).setBounds(50,130,100,20);
+        add(buttonAdd).setBounds(40,40,125,20);
+        add(labelSucsOrNot).setBounds(50,70,100,20);
 
         actionComponents(clientIndexInTable);
 
@@ -46,7 +36,7 @@ public class AddSumscription extends JFrame{
 
     public String[] loadTitle() {
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(NewSubscription.fileTypeSubscription));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(NewSubscription.fileTypeSubscription), StandardCharsets.UTF_8));
             String tempLine;
             while ((tempLine = reader.readLine()) != null){
                 subscriptionInfo.add(tempLine);
@@ -71,9 +61,6 @@ public class AddSumscription extends JFrame{
                 try {
                     String subscriptinInfa;
                     SimpleDateFormat format1 = new SimpleDateFormat("dd.MM.yyyy");
-                    Calendar dataConmboBox = Calendar.getInstance();
-                    dataConmboBox.setTime(format1.parse(field.getText()));
-                    dataConmboBox.add(Calendar.HOUR_OF_DAY,23);
                     //Date dataConmboBox = format1.parse(field.getText());
                     Date dataNow = new Date();
 
@@ -89,28 +76,22 @@ public class AddSumscription extends JFrame{
                             break;
                         }
                     }
-
-                    if (dataNow.before(dataConmboBox.getTime())) {
                         String clientName = clientInfo[index][0] + "";
 
                         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
                                 new FileOutputStream(NewClient.dirPathForClientPath + clientName + ".txt", true),StandardCharsets.UTF_8));
 
-                        dataConmboBox.setTime(format1.parse(field.getText()));
-                        subscriptinInfa = defineSubscriptionParametr(comboBoxType.getSelectedItem() + "|",dataConmboBox.getTime());
+
+                        subscriptinInfa = defineSubscriptionParametr(comboBoxType.getSelectedItem() + "|");
                         if (checkOnActivSubscription){
                             addToCLientTable(index,new StringBuffer(subscriptinInfa));
                         }
                         writer.write(subscriptinInfa);
                         writer.close();
-                        field.setText("");
                         labelSucsOrNot.setText("Добавлено");
 
                         dispose();
-                    }
-                    else {
-                        labelSucsOrNot.setText("Ошибка");
-                    }
+
                 }
                 catch (Exception ee){
                     System.out.println("file not found");
@@ -120,7 +101,7 @@ public class AddSumscription extends JFrame{
         });
     }
 
-    private static String defineSubscriptionParametr(String nameInComboBox, Date startDate){
+    private static String defineSubscriptionParametr(String nameInComboBox){
         String line;
         StringBuffer tempLine,subscriptionInfo = new StringBuffer("");
 
@@ -135,7 +116,7 @@ public class AddSumscription extends JFrame{
                     tempLine.delete(0,tempLine.indexOf("|")+1);
                     type = tempLine.substring(0,tempLine.indexOf("|", 1))+"";
                     tempLine.delete(0,tempLine.indexOf("|")+1);
-                    endAndStartTime = defineEndDate(startDate,Integer.parseInt(dataString));
+                    endAndStartTime = "Не активен";
                     subscriptionInfo.append("\n"+name+"|"+endAndStartTime+"|");
                     if (type.equals("lin")){
                         count = tempLine.substring(0,tempLine.indexOf("|", 1))+"";
@@ -166,7 +147,6 @@ public class AddSumscription extends JFrame{
 
 
     public static void addToCLientTable(int index, StringBuffer line) {
-        boolean check;
         Object[] addSubscription;
         //addSubscription = new Object[clientInfo.length];
         addSubscription = clientInfo[index];

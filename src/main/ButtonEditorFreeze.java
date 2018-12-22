@@ -7,14 +7,14 @@ import java.awt.event.ActionListener;
 
 import static create_gui_form.SwingConsole.run1;
 
+public class ButtonEditorFreeze extends DefaultCellEditor {
 
-public class ButtonEditorChangeInfo extends DefaultCellEditor {
     protected JButton button;
     private String    label;
     private boolean   isPushed;
-    private int row;
+    private static int row;
 
-    public ButtonEditorChangeInfo(JCheckBox checkBox) {
+    public ButtonEditorFreeze(JCheckBox checkBox) {
         super(checkBox);
         button = new JButton();
         button.setOpaque(true);
@@ -29,7 +29,7 @@ public class ButtonEditorChangeInfo extends DefaultCellEditor {
                                                  boolean isSelected, int row, int column) {
         if (isSelected) {
             button.setForeground(table.getSelectionForeground());
-            button.setBackground(table.getSelectionBackground());
+            button.setBackground(Color.RED);
         } else{
             button.setForeground(table.getForeground());
             button.setBackground(table.getBackground());
@@ -43,7 +43,7 @@ public class ButtonEditorChangeInfo extends DefaultCellEditor {
 
     public Object getCellEditorValue() {
         if (isPushed)  {
-            actionButtonChangeInfo();
+           actionButtonFreeze();
         }
         isPushed = false;
         return new String( label ) ;
@@ -58,9 +58,7 @@ public class ButtonEditorChangeInfo extends DefaultCellEditor {
         super.fireEditingStopped();
     }
 
-    private void actionButtonChangeInfo(){
-        run1(new ClientPage(470,1000,row),1000,470);
+    private static void actionButtonFreeze() {
+        run1(new FormFreeze(row),300,240);
     }
 }
-
-

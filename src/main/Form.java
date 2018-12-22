@@ -36,7 +36,6 @@ public class Form extends JFrame {
     public static DefaultTableModel dm = new DefaultTableModel();
     private static int countInGym = 0;
 
-    public static final String dirPathForFile = "E:\\temp_file";
     public static final String PEOPLE_IN_GYM_FILE = "E:\\temp_file\\peopleInGym.txt";
 
 
@@ -68,6 +67,7 @@ public class Form extends JFrame {
 
         //действия компонентов
         componentAction();
+        int size = 0;
 
         //this.setFocusable(true);
 
@@ -80,19 +80,17 @@ public class Form extends JFrame {
         readCountOfPeopleInGym();
 
         //загрузка таблицы клиентов
-        add(scrollpan_clients).setBounds(20,90,screenSize.width-40,500);
+        add(scrollpan_clients).setBounds(20,90,screenSize.width-40,500 + size);
 
-        add(labelNowInGym).setBounds(20,670,200,20);
-        add(fieldNowInGym).setBounds(210,670,40,27);
+        add(labelNowInGym).setBounds(20,670 + size,200,20);
+        add(fieldNowInGym).setBounds(210,670 + size,40,27);
 
-        add(labelBirthdayToday).setBounds(450,825,400,30);
+        add(labelBirthdayToday).setBounds(450,625 + size,400,30);
         loadTableBirthday();
-        add(scrollpan_clientsBirthday).setBounds(380,860,450,70);
+        add(scrollpan_clientsBirthday).setBounds(380,660 + size,450,70);
 
-        add(buttonStatistics).setBounds(1000,825,230,heightFirstLine);
-        add(buttonNewSubscription).setBounds(1000,900,230,heightFirstLine);
-
-
+        add(buttonStatistics).setBounds(1000,625 + size,230,heightFirstLine);
+        add(buttonNewSubscription).setBounds(1000,700 + size,230,heightFirstLine);
     }
 
     //установка размеров компонентов
@@ -144,7 +142,7 @@ public class Form extends JFrame {
         buttonNewSubscription.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                run1(new NewSubscription(), 240,250);
+                run1(new NewSubscription(), 240,300);
             }
         });
 
@@ -220,20 +218,24 @@ public class Form extends JFrame {
         tableClints.getColumn("Пришел").setCellEditor(new ButtonEditorPlusTrainy(new JCheckBox()));
         tableClints.getColumn("Ушел").setCellRenderer(new ButtonRenderer());
         tableClints.getColumn("Ушел").setCellEditor(new ButtonEditorEndTrainy(new JCheckBox()));
+        tableClints.getColumn("З-ть тек. абон.").setCellRenderer(new ButtonRenderer());
+        tableClints.getColumn("З-ть тек. абон.").setCellEditor(new ButtonEditorFreeze(new JCheckBox()));
 
 
         JScrollPane scroll = new JScrollPane(tableClints);
         getContentPane().add(scroll);
-        tableClints.getColumnModel().getColumn(0).setPreferredWidth(350);
-        tableClints.getColumnModel().getColumn(1).setPreferredWidth(100);
-        tableClints.getColumnModel().getColumn(2).setPreferredWidth(250);
-        tableClints.getColumnModel().getColumn(3).setPreferredWidth(200);
-        tableClints.getColumnModel().getColumn(4).setPreferredWidth(400);
-        tableClints.getColumnModel().getColumn(5).setPreferredWidth(80);
-        tableClints.getColumnModel().getColumn(6).setPreferredWidth(80);
-        tableClints.getColumnModel().getColumn(7).setPreferredWidth(150);
-        tableClints.getColumnModel().getColumn(8).setPreferredWidth(150);
-        tableClints.getColumnModel().getColumn(9).setPreferredWidth(50);
+        tableClints.getColumnModel().getColumn(0).setPreferredWidth(300);
+        tableClints.getColumnModel().getColumn(1).setPreferredWidth(60);
+        tableClints.getColumnModel().getColumn(2).setPreferredWidth(120);
+        tableClints.getColumnModel().getColumn(3).setPreferredWidth(180);
+        tableClints.getColumnModel().getColumn(4).setPreferredWidth(300);
+        tableClints.getColumnModel().getColumn(5).setPreferredWidth(50);
+        tableClints.getColumnModel().getColumn(6).setPreferredWidth(50);
+        tableClints.getColumnModel().getColumn(7).setPreferredWidth(100);
+        tableClints.getColumnModel().getColumn(8).setPreferredWidth(90);
+        tableClints.getColumnModel().getColumn(9).setPreferredWidth(90);
+        tableClints.getColumnModel().getColumn(10).setPreferredWidth(40);
+        tableClints.getColumnModel().getColumn(11).setPreferredWidth(30);
 
         scrollpan_clients = new JScrollPane(tableClints);
         tableClints.setFillsViewportHeight(true);
@@ -257,6 +259,22 @@ public class Form extends JFrame {
         dm.insertRow(index,tempArray);
         dm.removeRow(index+1);
         newClientInfo = null;
+    }
+
+    public static void refreshDataInPlusButton(int index, int flag){
+        Object[] tempArray = clientInfo[index];
+        if (flag == 0) {
+            tempArray[11] = "в зале";
+        } else {
+            tempArray[11] = "";
+        }
+
+        dm.insertRow(index,tempArray);
+        dm.removeRow(index+1);
+    }
+
+    public static void refreshValueInTable(String value,int index, int number) {
+        dm.setValueAt(value, index, number);
     }
 
     public static void readCountOfPeopleInGym(){
