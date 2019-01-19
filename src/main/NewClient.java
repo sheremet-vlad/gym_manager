@@ -148,7 +148,8 @@ public class NewClient extends JFrame {
                         write.append(secondName+"|");
                         write.append(birthday+"|");
                         write.append(cartNumber+"|");
-                        write.append(phone+"|\n");
+                        write.append(phone+"|");
+                        write.append("0|\n");
                         dispose();
                         File clientFile = new File(dirPathForClientPath+surname+" "+name+" "+secondName+".txt");
                         clientFile.createNewFile();

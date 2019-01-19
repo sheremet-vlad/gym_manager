@@ -1,8 +1,11 @@
 package main;
 
+import filter.DigitFilter;
+
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.text.MaskFormatter;
+import javax.swing.text.PlainDocument;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -25,7 +28,8 @@ public class ClientPage extends JFrame {
     private JTextField  fieldFirstName = new JTextField(COUNT_COLUMNS),
             fieldSurname = new JTextField(COUNT_COLUMNS),
             fieldSecondName = new JTextField(COUNT_COLUMNS),
-            fieldWCartNumber = new JTextField(COUNT_COLUMNS);
+            fieldWCartNumber = new JTextField(COUNT_COLUMNS),
+            fieldGuestVisit = new JTextField(COUNT_COLUMNS);
 
     private JFormattedTextField fieldBirthday,fieldPhone;
 
@@ -40,10 +44,12 @@ public class ClientPage extends JFrame {
             labelSecondName = new JLabel("Отчество"),
             labelBirthday = new JLabel("Дата рождения"),
             labelTitle = new JLabel("РЕДАКТИРОВАТЬ ДАННЫЕ КЛИЕНТА"),
+            labelGuestVisit = new JLabel("Гостевые визиты"),
             line = new JLabel(""),
             line2 = new JLabel(""),
             line3 = new JLabel(""),
             line4 = new JLabel(""),
+            line5 = new JLabel(""),
             labelNotPerfom = new JLabel(""),
             labelHistotyOfSubscription = new JLabel("ИСТОРИЯ АБОНЕМЕНТОВ"),
             labelHistotyOfTreiny = new JLabel("ИСТОРИЯ ТРЕНИРОВОК"),
@@ -69,8 +75,8 @@ public class ClientPage extends JFrame {
         //Бордер для линии
         Border border = BorderFactory.createLineBorder(Color.BLACK, 2);
 
-        //настройка компонентов
-        //configurateComponent();
+        PlainDocument doc1 = (PlainDocument) fieldGuestVisit.getDocument();
+        doc1.setDocumentFilter(new DigitFilter());
 
         //настройка маски поля день рождения
         fieldBirthday = new JFormattedTextField();
@@ -90,11 +96,12 @@ public class ClientPage extends JFrame {
 
         //добавление компонетов
         add(labelTitle).setBounds(32,10,230,30);
-        line.setBorder(border); line2.setBorder(border); line3.setBorder(border); line4.setBorder(border);
+        line.setBorder(border); line2.setBorder(border); line3.setBorder(border); line4.setBorder(border); line5.setBorder(border);
         add(line).setBounds(0,40,form_width,1);
         add(line2).setBounds(0,235,lineSpace,1);
         add(line3).setBounds(lineSpace,0,1,form_height);
         add(line4).setBounds(625,0,1,form_height);
+        add(line5).setBounds(0,265,lineSpace, 1);
         add(labelSurname).setBounds(40,50,70,20);
         add(fieldSurname).setBounds(110,50,130,20);
         add(labelName).setBounds(40,80,70,20);
@@ -107,7 +114,9 @@ public class ClientPage extends JFrame {
         add(fieldPhone).setBounds(110,170,130,20);
         add(labelCartNumber).setBounds(40,200,70,20);
         add(fieldWCartNumber).setBounds(110,200,130,20);
-        add(button_finish).setBounds(40,250,200,25);
+        add(labelGuestVisit).setBounds(40,240,150,20);
+        add(fieldGuestVisit).setBounds(150,240,30,20);
+        add(button_finish).setBounds(40,280,200,25);
         add(labelNotPerfom).setBounds(90,300,200,20);
         add(labelHistotyOfSubscription).setBounds(380,10,230,30);
         add(labelHistotyOfTreiny).setBounds(730,10,230,30);
@@ -226,12 +235,13 @@ public class ClientPage extends JFrame {
                             surname = fieldSurname.getText().trim(),
                             birthday = fieldBirthday.getText(),
                             cartNumber = fieldWCartNumber.getText().trim(),
-                            phone = fieldPhone.getText();
+                            phone = fieldPhone.getText(),
+                            guestVisit = fieldGuestVisit.getText();
 
 
 
                     if (name.equals("") || secondName.equals("") || surname.equals("") || birthday.equals("")
-                            || phone.equals("") || cartNumber.equals("")) {
+                            || phone.equals("") || cartNumber.equals("") || guestVisit.equals("")) {
                         labelNotPerfom.setText("Ошибка");
                     }
                     else {
@@ -256,6 +266,7 @@ public class ClientPage extends JFrame {
                         write.append(birthday+"|");
                         write.append(cartNumber+"|");
                         write.append(phone+"|");
+                        write.append(guestVisit + "|");
                         Files.write(path, new String(Files.readAllBytes(path), charset).replace(lineInfo, write + "").getBytes(charset));
 
                         File oldFile = new File(NewClient.dirPathForClientPath+lineInfo.substring(0,lineInfo.indexOf('|'))+".txt");
@@ -330,7 +341,8 @@ public class ClientPage extends JFrame {
                     fieldWCartNumber.setText(tempLine.substring(0,tempLine.indexOf("|")));
                     tempLine.delete(0,tempLine.indexOf("|")+1);
                     fieldPhone.setText(tempLine.substring(0,tempLine.indexOf("|")));
-                    //tempLine.delete(0,tempLine.indexOf("|")+1);
+                    tempLine.delete(0,tempLine.indexOf("|")+1);
+                    fieldGuestVisit.setText(tempLine.substring(0,tempLine.indexOf("|")));
                     lineInfo = line;
                     break;
                 }
